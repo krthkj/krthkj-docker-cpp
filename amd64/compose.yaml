@@ -1,0 +1,65 @@
+services:
+
+## Alpine collection #######################
+  gcc-alpine:
+    image: krthkj/cpp:gcc14-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+      args:
+        IMG_TAG: "latest"
+        CMAKE_VERSION: 4.0.4
+
+  # clang-alpine:
+  #   image: krthkj/cpp:clang20-alpine
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.alpine
+  #     args:
+  #       IMG_TAG: "latest"
+  #       USE_CLANG: "true"
+  #       CMAKE_VERSION: 4.0.4
+
+## Ubuntu Collection #######################
+  gcc:
+    image: krthkj/cpp:gcc14
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        IMG_TAG: "latest"
+        GCC_VERSION: "14"
+        CMAKE_VERSION: 4.0.4
+
+  # clang:
+  #   image: krthkj/cpp:clang20
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ubuntu
+  #     args:
+  #       IMG_TAG: "latest"
+  #       USE_CLANG: "true"
+  #       CLANG_VERSION: "20"
+  #       CMAKE_VERSION: 4.0.4
+
+## Ubuntu-nvidia Collection ################
+  gcc-cuda:
+    image: krthkj/cpp:gcc14-cuda13
+    build:
+      context: .
+      dockerfile: Dockerfile.nvidia-cuda
+      args:
+        IMG_TAG: 13.0.2-devel-ubuntu24.04
+        GCC_VERSION: "14"
+        CMAKE_VERSION: 4.0.4
+
+  # clang-cuda:
+  #   image: krthkj/cpp:clang-cuda13
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.nvidia-cuda
+  #     args:
+  #       IMG_TAG: 13.0.2-devel-ubuntu24.04
+  #       USE_CLANG: "true"
+  #       CMAKE_VERSION: 4.0.4
+

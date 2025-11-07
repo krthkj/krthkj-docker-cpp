@@ -1,0 +1,92 @@
+ARG IMG_TAG="latest"
+FROM alpine:${IMG_TAG}
+
+LABEL compiler="gcc"
+LABEL description="Minimal C++20/23 development environment using Alpine Linux and GCC (or Clang/LLVM)."
+
+RUN set -ex; \    
+    ## Other necessary build dependencies
+    apk add --upgrade --no-cache \
+        ninja \
+        pkgconf \
+    ## CMake runtime dependencies for Alpine
+        openssl \
+        expat \
+        libuv \
+        libarchive \
+        libc6-compat \
+    ## oneAPI Threading Building Blocks
+        onetbb-dev \
+        ; \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
+
+## Qt 6 Development Support
+ARG USE_QT6="false"
+RUN set -ex; \    
+    if [ "${USE_QT6}" = "true" ]; \
+    then \
+        apk add --upgrade --no-cache \
+            qt6-qtbase-dev \
+            # qt6-qttools-dev \
+            ; \
+        rm -rf /tmp/* /var/tmp/* /var/cache/apk/* ;\
+    fi ;
+
+ARG USE_CLANG="false"
+RUN set -ex; \    
+    if [ "${USE_CLANG}" = "true" ]; \
+    then \
+        ## 1.1 CLang/LLVM toolchain and debugger
+        apk add --upgrade --no-cache \
+            clang \
+            lldb \
+            lld \
+            llvm \
+        ## 1.2 Base build tools and headers (replaces 'build-base' components)
+            make \
+            musl-dev \
+            libc++-dev \       
+            ;\
+        ## Set Compiler Defaults (Symbolic Links)
+        ## Force all generic and GCC-named commands to point to Clang
+        ln -sf /usr/bin/clang   /usr/bin/cc; \
+        ln -sf /usr/bin/clang   /usr/bin/gcc; \
+        ln -sf /usr/bin/clang++ /usr/bin/c++; \
+        ln -sf /usr/bin/clang++ /usr/bin/g++; \
+        \
+        ## Set Debugger Default (Symbolic Link for IDEs like CLion)
+        ## Redirect the expected gdb path to the lldb executable
+        ln -sf /usr/bin/lldb /usr/bin/gdb; \
+        \
+        ## For build-time: Export CC/CXX for tools that respect ENV (e.g., CMake)
+        export CC="clang"; \
+        export CXX="clang++"; \
+    else \
+        ## 1. GCC toolchain and debugger
+        apk add --upgrade --no-cache build-base gdb ;\
+    fi ; \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
+
+ARG USE_WGET="false"
+ARG CMAKE_VERSION="4.0.4"
+ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
+ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+RUN set -ex; \
+    if [ "${USE_WGET}" = "true" ]; then \
+        apk add --upgrade --no-cache wget tar; \
+        wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \
+        apk del wget tar; \
+    else \
+        apk add --upgrade --no-cache curl tar; \
+        curl -L ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local ; \
+        apk del curl tar ; \
+    fi ; \
+    ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
+
+WORKDIR /app
+
+# CMD cmake --version | head -1 && \
+#     if [ "${USE_CLANG}" = "true" ]; then clang --version | head -1 && lldb --version | head -1; \
+#     else gcc --version | head -1 && gdb --version | head -1; fi
+

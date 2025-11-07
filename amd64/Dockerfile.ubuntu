@@ -1,0 +1,111 @@
+ARG IMG_TAG="latest"
+FROM ubuntu:${IMG_TAG}
+
+LABEL compiler="gcc"
+LABEL description="Minimal C++20/23 development environment using Ubuntu and GCC with all common dependencies."
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install all common dependencies, GCC, and perform cleanup in a single, efficient layer
+# RUN set -ex; \
+    # 1. Update and Install ALL packages (Common + GCC)
+RUN set -ex ; \
+    apt-get update ; \
+    apt-get upgrade -y --no-install-recommends ;
+
+ARG GCC_VERSION="14"
+ARG GCC_ALT_VAL="${GCC_VERSION}0"
+ARG USE_CLANG="false"
+ARG CLANG_VERSION="20"
+ARG CLANG_ALT_VAL="${CLANG_VERSION}0"
+RUN set -ex ;\
+    apt-get update ; \
+    if [ "${USE_CLANG}" = "true" ]; \
+    then \
+        apt-get install -y --no-install-recommends \
+            clang-${CLANG_VERSION} \
+            # lldb lld llvm\
+            ;\
+        ## Set Compiler Defaults (Symbolic Links)
+        ## Force all generic and GCC-named commands to point to Clang
+        update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${CLANG_VERSION}   ${CLANG_ALT_VAL} ; \
+        update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} ${CLANG_ALT_VAL} ; \
+        \
+        ## Set Debugger Default (Symbolic Link for IDEs like CLion)
+        ## Redirect the expected gdb path to the lldb executable
+        ln -sf /usr/bin/lldb /usr/bin/gdb; \
+        \
+        ## For build-time: Export CC/CXX for tools that respect ENV (e.g., CMake)
+        export CC="clang"; \
+        export CXX="clang++"; \
+    else \
+        apt-get install -y --no-install-recommends \
+            build-essential \
+            gdb \
+            gcc-${GCC_VERSION} g++-${GCC_VERSION} \
+            ;\
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+    fi ; \
+    ## oneAPI Threading Building Blocks
+    apt-get install -y --no-install-recommends libtbb-dev ; \    
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+## OpenCL Dependencies
+ARG USE_CL="false"
+RUN set -ex ; \
+    apt-get update ; \
+    if [ "${USE_CL}" = "true" ]; \
+    then \
+        apt-get install -y --no-install-recommends \
+            ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
+            nvidia-opencl-dev \
+            ;\
+    fi ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+## Qt6 Dependencies
+ARG USE_QT6="false"
+RUN set -ex ; \
+    apt-get update ; \
+    if [ "${USE_QT6}" = "true" ]; \
+    then \
+        apt-get install -y --no-install-recommends \
+            qt6-base-dev \
+            ;\
+    fi ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+
+ARG USE_WGET="false"
+ARG CMAKE_VERSION="4.1.2"
+ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
+ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+RUN set -ex ; \
+    apt-get update ;\
+    if [ "${USE_WGET}" = "true" ]; then \
+        apt-get install -y --no-install-recommends  wget ; \
+        wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \
+        apt-get purge -y  wget ; \
+    else \
+        apt-get install -y --no-install-recommends  curl ca-certificates; \
+        curl -L ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local ; \
+        apt-get purge -y curl ; \
+    fi ; \
+    ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+WORKDIR /app
+
+# CMD cmake --version | head -1 && \
+#     if [ "${USE_CLANG}" = "true" ]; then clang --version | head -1 && lldb --version | head -1; \
+#     else gcc --version | head -1 && gdb --version | head -1; fi
+

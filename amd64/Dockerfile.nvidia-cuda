@@ -1,0 +1,68 @@
+ARG IMG_TAG="13.0.2-devel-ubuntu24.04"
+FROM nvidia/cuda:${IMG_TAG}
+
+LABEL compiler="gcc, nvcc"
+LABEL description="Optimized CUDA development environment"
+
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install all common dependencies, GCC, and perform cleanup in a single, efficient layer
+# RUN set -ex; \
+    # 1. Update and Install ALL packages (Common + GCC)
+RUN set -ex; \
+    apt-get update ; \
+    apt-get upgrade -y --no-install-recommends ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
+
+ARG GCC_VERSION="14"
+ARG GCC_ALT_VAL="${GCC_VERSION}0"
+ARG USE_CLANG="false"
+RUN set -ex; \
+    apt-get install -y --no-install-recommends \
+        ## Common Dependencies
+        gdb \
+        ## GCC Dependencies
+        build-essential \
+        gcc-${GCC_VERSION} g++-${GCC_VERSION} \
+        ## Qt6 Dependencies
+        # qt6-base-dev \
+        ## oneAPI Threading Building Blocks
+        libtbb-dev \
+        ## Generic OpenCL
+        # ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
+        ## nVidia-OpenCL
+        # nvidia-opencl-dev \
+        ; \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
+
+ARG USE_WGET="false"
+ARG CMAKE_VERSION="4.1.2"
+ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
+ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+RUN set -ex; \
+    if [ "${USE_WGET}" = "true" ]; then \
+        apt-get install -y --no-install-recommends  wget ; \
+        wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \
+        apt-get purge -y  wget ; \
+    else \
+        apt-get install -y --no-install-recommends  curl ; \
+        curl -L ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local ; \
+        apt-get purge -y curl ; \
+    fi ; \
+    ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
+
+WORKDIR /app
+
+# CMD cmake --version | head -1 && \
+#     if [ "${USE_CLANG}" = "true" ]; then clang --version | head -1 && lldb --version | head -1; \
+#     else gcc --version | head -1 && gdb --version | head -1; fi
