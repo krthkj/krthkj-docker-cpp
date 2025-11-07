@@ -17,16 +17,17 @@ RUN set -ex; \
     apt-get clean; \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
 
-ARG GCC_VERSION="14"
-ARG GCC_ALT_VAL="${GCC_VERSION}0"
 ARG USE_CLANG="false"
+ARG COMPILER_VERSION="14"
+ARG ALT_VALUE="${COMPILER_VERSION}0"
 RUN set -ex; \
+    apt-get update ; \
     apt-get install -y --no-install-recommends \
         ## Common Dependencies
         gdb \
         ## GCC Dependencies
         build-essential \
-        gcc-${GCC_VERSION} g++-${GCC_VERSION} \
+        gcc-${COMPILER_VERSION} g++-${COMPILER_VERSION} \
         ## Qt6 Dependencies
         # qt6-base-dev \
         ## oneAPI Threading Building Blocks
@@ -36,8 +37,8 @@ RUN set -ex; \
         ## nVidia-OpenCL
         # nvidia-opencl-dev \
         ; \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${GCC_ALT_VAL} ; \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${COMPILER_VERSION} ${ALT_VALUE} ; \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${COMPILER_VERSION} ${ALT_VALUE} ; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
@@ -47,6 +48,7 @@ ARG CMAKE_VERSION="4.1.2"
 ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
 ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
 RUN set -ex; \
+    apt-get update ; \
     if [ "${USE_WGET}" = "true" ]; then \
         apt-get install -y --no-install-recommends  wget ; \
         wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \

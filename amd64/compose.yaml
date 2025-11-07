@@ -28,8 +28,9 @@ services:
       dockerfile: Dockerfile.ubuntu
       args:
         IMG_TAG: "latest"
-        GCC_VERSION: "14"
+        COMPILER_VERSION: "14"
         CMAKE_VERSION: 4.0.4
+        USE_CL: "true"
 
   # clang:
   #   image: krthkj/cpp:clang20

@@ -6,32 +6,28 @@ LABEL description="Minimal C++20/23 development environment using Ubuntu and GCC
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install all common dependencies, GCC, and perform cleanup in a single, efficient layer
-# RUN set -ex; \
-    # 1. Update and Install ALL packages (Common + GCC)
 RUN set -ex ; \
     apt-get update ; \
     apt-get upgrade -y --no-install-recommends ;
 
-ARG GCC_VERSION="14"
-ARG GCC_ALT_VAL="${GCC_VERSION}0"
 ARG USE_CLANG="false"
-ARG CLANG_VERSION="20"
-ARG CLANG_ALT_VAL="${CLANG_VERSION}0"
+ARG COMPILER_VERSION="14"
+ARG ALT_VALUE="${COMPILER_VERSION}0"
 RUN set -ex ;\
     apt-get update ; \
+    apt-get install -y --no-install-recommends \
+        vim \
+        ; \
     if [ "${USE_CLANG}" = "true" ]; \
     then \
         apt-get install -y --no-install-recommends \
-            clang-${CLANG_VERSION} \
+            clang-${COMPILER_VERSION} \
             # lldb lld llvm\
             ;\
-        ## Set Compiler Defaults (Symbolic Links)
         ## Force all generic and GCC-named commands to point to Clang
-        update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${CLANG_VERSION}   ${CLANG_ALT_VAL} ; \
-        update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} ${CLANG_ALT_VAL} ; \
+        update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${COMPILER_VERSION}   ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${COMPILER_VERSION} ${ALT_VALUE} ; \
         \
-        ## Set Debugger Default (Symbolic Link for IDEs like CLion)
         ## Redirect the expected gdb path to the lldb executable
         ln -sf /usr/bin/lldb /usr/bin/gdb; \
         \
@@ -42,13 +38,21 @@ RUN set -ex ;\
         apt-get install -y --no-install-recommends \
             build-essential \
             gdb \
-            gcc-${GCC_VERSION} g++-${GCC_VERSION} \
+            gcc-${COMPILER_VERSION} g++-${COMPILER_VERSION} \
             ;\
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${GCC_ALT_VAL} ; \
-        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${GCC_ALT_VAL} ; \
+        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${COMPILER_VERSION} ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${COMPILER_VERSION} ${ALT_VALUE} ; \
     fi ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+RUN set -ex ;\
+    apt-get update ; \
     ## oneAPI Threading Building Blocks
-    apt-get install -y --no-install-recommends libtbb-dev ; \    
+    apt-get install -y --no-install-recommends \
+        libtbb-dev \
+        ; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
@@ -81,7 +85,6 @@ RUN set -ex ; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
-
 
 ARG USE_WGET="false"
 ARG CMAKE_VERSION="4.1.2"
