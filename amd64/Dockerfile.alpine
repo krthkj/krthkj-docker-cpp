@@ -17,6 +17,8 @@ RUN set -ex; \
         libc6-compat \
     ## oneAPI Threading Building Blocks
         onetbb-dev \
+    ## SPD logging
+        spdlog-dev \
         ; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
@@ -68,7 +70,7 @@ RUN set -ex; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
 ARG USE_WGET="false"
-ARG CMAKE_VERSION="4.0.4"
+ARG CMAKE_VERSION="4.1.2"
 ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
 ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
 RUN set -ex; \
@@ -83,6 +85,13 @@ RUN set -ex; \
     fi ; \
     ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
+
+RUN set -ex; \    
+    apk add --upgrade --no-cache \
+        boost-dev \
+        ; \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* ;
+
 
 WORKDIR /app
 

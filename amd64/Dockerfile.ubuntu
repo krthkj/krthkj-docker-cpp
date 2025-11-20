@@ -6,27 +6,39 @@ LABEL description="Minimal C++20/23 development environment using Ubuntu and GCC
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN set -ex ; \
+RUN set -ex; \
     apt-get update ; \
-    apt-get upgrade -y --no-install-recommends ;
+    apt-get upgrade -y --no-install-recommends; \
+    apt-get install -y --no-install-recommends \
+        vim \
+        ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
 
 ARG USE_CLANG="false"
 ARG COMPILER_VERSION="14"
 ARG ALT_VALUE="${COMPILER_VERSION}0"
 RUN set -ex ;\
     apt-get update ; \
-    apt-get install -y --no-install-recommends \
-        vim \
-        ; \
     if [ "${USE_CLANG}" = "true" ]; \
     then \
-        apt-get install -y --no-install-recommends \
+        apt-get install -y \ 
+            # --no-install-recommends \
             clang-${COMPILER_VERSION} \
-            # lldb lld llvm\
+            clang-format-${COMPILER_VERSION} clang-tidy-${COMPILER_VERSION} \
+            lld-${COMPILER_VERSION} lldb-${COMPILER_VERSION} \
+            llvm-${COMPILER_VERSION} \
             ;\
         ## Force all generic and GCC-named commands to point to Clang
         update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${COMPILER_VERSION}   ${ALT_VALUE} ; \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${COMPILER_VERSION} ${ALT_VALUE} ; \
+        \
+        update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${COMPILER_VERSION} ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/clang-tidy   clang-tidy   /usr/bin/clang-tidy-${COMPILER_VERSION}   ${ALT_VALUE} ; \
+        \
+        update-alternatives --install /usr/bin/lld  lld  /usr/bin/lld-${COMPILER_VERSION}  ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-${COMPILER_VERSION} ${ALT_VALUE} ; \
         \
         ## Redirect the expected gdb path to the lldb executable
         ln -sf /usr/bin/lldb /usr/bin/gdb; \
@@ -42,45 +54,6 @@ RUN set -ex ;\
             ;\
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${COMPILER_VERSION} ${ALT_VALUE} ; \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${COMPILER_VERSION} ${ALT_VALUE} ; \
-    fi ; \
-    apt-get autoremove -y; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
-
-RUN set -ex ;\
-    apt-get update ; \
-    ## oneAPI Threading Building Blocks
-    apt-get install -y --no-install-recommends \
-        libtbb-dev \
-        ; \
-    apt-get autoremove -y; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
-
-## OpenCL Dependencies
-ARG USE_CL="false"
-RUN set -ex ; \
-    apt-get update ; \
-    if [ "${USE_CL}" = "true" ]; \
-    then \
-        apt-get install -y --no-install-recommends \
-            ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
-            nvidia-opencl-dev \
-            ;\
-    fi ; \
-    apt-get autoremove -y; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
-
-## Qt6 Dependencies
-ARG USE_QT6="false"
-RUN set -ex ; \
-    apt-get update ; \
-    if [ "${USE_QT6}" = "true" ]; \
-    then \
-        apt-get install -y --no-install-recommends \
-            qt6-base-dev \
-            ;\
     fi ; \
     apt-get autoremove -y; \
     apt-get clean; \
@@ -106,9 +79,156 @@ RUN set -ex ; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
 
-WORKDIR /app
+RUN set -ex ; \
+    apt-get update ; \
+    apt-get install -y --no-install-recommends \
+        libtbb-dev \
+        libgtest-dev libgmock-dev \
+        ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
+        nvidia-opencl-dev \
+        sqlite3 libsqlite3-dev \
+        nlohmann-json3-dev libjsoncpp-dev\
+        ;\
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+RUN set -ex ;\
+    apt-get update ; \
+    apt-get install -y \
+        --no-install-recommends \
+        libspdlog-dev \
+        libtbb-dev \
+        libsqlite3-dev \
+        # libboost-all-dev \
+        ; \
+    apt-get autoremove -y; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+# RUN apt-cache search libboost-signals-dev && sleep 60s
+
+# RUN set -ex ;\
+#     apt-get update ; \
+#     apt-get install -y --no-install-recommends \
+#         qt6-base-dev \
+#         libtbb-dev \
+#         libsqlite3-dev \
+#         ; \
+#     apt-get autoremove -y; \
+#     apt-get clean; \
+#     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
+
+
+# ENV QT_VERSION=6.8.0 \
+#     QT_INSTALL_DIR=/opt/Qt/${QT_VERSION}/gcc_64 \
+#     PATH="$QT_INSTALL_DIR/bin:$PATH"
+
+# RUN apt-get update
+# RUN apt-get install -y \
+#         libxcb-xinerama0 \
+#         libxcb-icccm4 \
+#         libxcb-icccm4-dev \
+#         libxcb-image0 \
+#         libxcb-image0-dev \
+#         libxcb-keysyms1 \
+#         libxcb-keysyms1-dev \
+#         libxcb-render-util0 \
+#         libxcb-render-util0-dev \
+#         libxkbcommon-x11-0 \
+#         libxkbcommon-x11-dev \
+#         libfontconfig1 \
+#         libfontconfig1-dev \
+#         x11-apps
+
+# RUN apt-get install -y \
+#         libqt6core6 \
+#         qt6-base-dev
+
+RUN set -ex ; \
+    apt-get update ; \
+    apt-get install -y \ 
+        --no-install-recommends \
+        build-essential python3-dev libssl-dev python3 \
+        libicu-dev libbz2-dev libz-dev \
+        wget tar
+
+# ARG BOOST_VERSION=1.89.0
+# ENV BOOST_URL="https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-b2-nodocs.tar.xz"
+# ENV BOOST_TARBALL="boost-${BOOST_VERSION}.tar.xz"
+# ENV BOOST_DIR="boost_${BOOST_VERSION//./_}"
+# ENV BOOST_DIR="boost-${BOOST_VERSION}"
+# ENV PREFIX=/usr/local
+
+# WORKDIR /tmp
+
+# RUN set -ex ; \
+#     wget -O /tmp/${BOOST_TARBALL} ${BOOST_URL} ;\
+#     tar xf /tmp/${BOOST_TARBALL}
+# # # RUN set -ex ; \
+# # RUN mv boost-${BOOST_VERSION}  /tmp/${BOOST_DIR}
+# # RUN rm /tmp/${BOOST_TARBALL}
+
+# WORKDIR /tmp/${BOOST_DIR}
+# RUN set -ex ; \
+#     ./bootstrap.sh --prefix=${PREFIX} --with-python=python3 ;\
+# # # RUN ./b2 -j$(nproc) install threading=multi link=shared --with-libraries=all
+#     ./b2 -j$(nproc) install threading=multi link=shared --prefix=/usr/local ;\
+#     rm -rf /tmp/*
+
 
 # CMD cmake --version | head -1 && \
 #     if [ "${USE_CLANG}" = "true" ]; then clang --version | head -1 && lldb --version | head -1; \
 #     else gcc --version | head -1 && gdb --version | head -1; fi
 
+
+# WORKDIR /tmp
+
+# ENV BOOST_URL="https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.xz"
+# RUN set -ex ; \
+#     wget -O /tmp/${BOOST_TARBALL} ${BOOST_URL} ;\
+#     tar xf /tmp/${BOOST_TARBALL}
+
+# WORKDIR /tmp/${BOOST_DIR}
+# RUN mkdir build
+
+# WORKDIR /tmp/${BOOST_DIR}/build
+# RUN cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release
+# RUN cmake --build . -j $(nproc)
+# RUN cmake --build . --target install
+
+# Define variables first for clarity and reusability
+ENV BOOST_VERSION="1.89.0"
+ENV BOOST_DIR="boost-${BOOST_VERSION}"
+ENV BOOST_TARBALL="${BOOST_DIR}-cmake.tar.xz"
+ENV BOOST_URL="https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/${BOOST_TARBALL}"
+
+# Use a temporary directory for all operations and remove the tarball afterwards
+RUN set -ex ; \
+    # 1. Download the Boost source
+    wget -O /tmp/${BOOST_TARBALL} ${BOOST_URL} ;\
+    # 2. Extract the source (creates ${BOOST_DIR})
+    cd /tmp/ ;\
+    tar xf /tmp/${BOOST_TARBALL} ;\
+    \
+    # 3. Create build directory and change into it
+    mkdir -p /tmp/${BOOST_DIR}/build ;\
+    cd /tmp/${BOOST_DIR}/build ; \
+    \
+    # 4. Configure with CMake
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_BUILD_TYPE=Release ;\
+    \
+    # 5. Build the library using all available cores
+    cmake --build . -j $(nproc) ; \
+    \
+    # 6. Install the library
+    cmake --build . --target install ; \
+    \
+    # 7. Clean up: Remove the build directory and the downloaded tarball
+    cd /tmp ; \
+    rm -rf ${BOOST_DIR} /tmp/${BOOST_TARBALL}
+
+WORKDIR /tmp
+# WORKDIR /app

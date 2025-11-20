@@ -4,15 +4,17 @@ FROM nvidia/cuda:${IMG_TAG}
 LABEL compiler="gcc, nvcc"
 LABEL description="Optimized CUDA development environment"
 
-
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install all common dependencies, GCC, and perform cleanup in a single, efficient layer
-# RUN set -ex; \
-    # 1. Update and Install ALL packages (Common + GCC)
 RUN set -ex; \
     apt-get update ; \
     apt-get upgrade -y --no-install-recommends ; \
+    apt-get install -y --no-install-recommends \
+        vim \
+        libtbb-dev \
+        ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
+        nvidia-opencl-dev \
+        ; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
@@ -23,20 +25,10 @@ ARG ALT_VALUE="${COMPILER_VERSION}0"
 RUN set -ex; \
     apt-get update ; \
     apt-get install -y --no-install-recommends \
-        ## Common Dependencies
-        gdb \
-        ## GCC Dependencies
         build-essential \
+        gdb \
         gcc-${COMPILER_VERSION} g++-${COMPILER_VERSION} \
-        ## Qt6 Dependencies
-        # qt6-base-dev \
-        ## oneAPI Threading Building Blocks
-        libtbb-dev \
-        ## Generic OpenCL
-        # ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers \
-        ## nVidia-OpenCL
-        # nvidia-opencl-dev \
-        ; \
+        ;\
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${COMPILER_VERSION} ${ALT_VALUE} ; \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${COMPILER_VERSION} ${ALT_VALUE} ; \
     apt-get autoremove -y; \
@@ -62,6 +54,20 @@ RUN set -ex; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
+
+
+# RUN set -ex; \
+#     apt-get update ; \
+#     apt-get install -y --no-install-recommends  \
+#         ## Qt6 Dependencies
+#         # qt6-base-dev \
+#         ## oneAPI Threading Building Blocks
+#         ## Generic OpenCL
+#         ; \
+#     apt-get autoremove -y; \
+#     apt-get clean; \
+#     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
+
 
 WORKDIR /app
 

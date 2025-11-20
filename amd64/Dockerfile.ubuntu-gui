@@ -1,0 +1,87 @@
+FROM ubuntu:22.04
+
+LABEL compiler="gcc"
+LABEL description="Minimal C++20/23 development environment using Ubuntu and GCC with all common dependencies."
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
+RUN apt-get upgrade -y
+
+RUN apt-get install -y build-essential gdb gcc-12 g++-12 wget tar vim
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 140
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 140
+    
+
+ARG CMAKE_VERSION="4.0.4"
+ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
+ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+RUN wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local
+RUN ln -s /usr/local/bin/cmake /usr/bin/cmake 
+
+# RUN apt-get install -y ocl-icd-opencl-dev ocl-icd-libopencl1 opencl-headers nvidia-opencl-dev
+# RUN apt-get install -y libtbb-dev libsqlite3-dev libgtest-dev libgmock-dev
+
+RUN apt-get install -y \
+        qt6-base-dev libqt6core6 \
+        libxcb-xinerama0 \
+        libxcb-icccm4 libxcb-icccm4-dev \
+        libxcb-image0 libxcb-image0-dev \
+        libxcb-keysyms1 libxcb-keysyms1-dev \
+        libxcb-render-util0 libxcb-render-util0-dev \
+        libxkbcommon-x11-0 libxkbcommon-x11-dev \
+        libfontconfig1 libfontconfig1-dev \
+        x11-apps
+
+RUN apt-get update
+RUN apt-get install -y \
+        libxcb-xinerama0 \
+        libxcb-icccm4 \
+        libxcb-icccm4-dev \
+        libxcb-image0 \
+        libxcb-image0-dev \
+        libxcb-keysyms1 \
+        libxcb-keysyms1-dev \
+        libxcb-render-util0 \
+        libxcb-render-util0-dev \
+        libxcb-sync1 \
+        libxcb-sync-dev \
+        libxcb-randr0 \
+        libxcb-randr0-dev \
+        libxcb-shm0 \
+        libxcb-shm0-dev \
+        libxcb-xfixes0 \
+        libxcb-xfixes0-dev \
+        libxcb-shape0 \
+        libxcb-shape0-dev \
+        libxcb-util1 \
+        libxcb-util-dev \
+        libxcb-xkb1 \
+        libxcb-xkb-dev \
+        libxkbcommon-x11-0 \
+        libxkbcommon-x11-dev
+
+
+RUN apt-get install -y libopengl-dev
+
+# ... inside one of your RUN apt-get install -y blocks ...
+
+RUN apt-get install -y \
+    libopengl-dev \
+    libglu1-mesa-dev \
+    mesa-utils
+    
+
+# ENV QT_VERSION=6.8.0
+# ENV QT_INSTALL_DIR=/opt/Qt/${QT_VERSION}/gcc_64
+# ENV PATH="$QT_INSTALL_DIR/bin:$PATH"
+        
+ENV QT_INSTALL_DIR=/usr/lib/x86_64-linux-gnu/qt6 \
+    PATH="$QT_INSTALL_DIR/bin:$PATH"
+
+WORKDIR /app
+
+# CMD cmake --version | head -1 && \
+#     if [ "${USE_CLANG}" = "true" ]; then clang --version | head -1 && lldb --version | head -1; \
+#     else gcc --version | head -1 && gdb --version | head -1; fi
+
