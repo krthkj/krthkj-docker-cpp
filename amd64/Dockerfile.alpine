@@ -9,6 +9,7 @@ RUN set -ex; \
     apk add --upgrade --no-cache \
         ninja \
         pkgconf \
+        gdb \
     ## CMake runtime dependencies for Alpine
         openssl \
         expat \
@@ -19,20 +20,28 @@ RUN set -ex; \
         onetbb-dev \
     ## SPD logging
         spdlog-dev \
+        boost-dev \
         ; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
-## Qt 6 Development Support
-ARG USE_QT6="false"
-RUN set -ex; \    
-    if [ "${USE_QT6}" = "true" ]; \
-    then \
-        apk add --upgrade --no-cache \
-            qt6-qtbase-dev \
-            # qt6-qttools-dev \
-            ; \
-        rm -rf /tmp/* /var/tmp/* /var/cache/apk/* ;\
-    fi ;
+ENV CMAKE_GENERATOR=Ninja
+
+ARG USE_WGET="false"
+ARG CMAKE_VERSION="4.1.3"
+ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
+ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+RUN set -ex; \
+    if [ "${USE_WGET}" = "true" ]; then \
+        apk add --upgrade --no-cache wget tar; \
+        wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \
+        apk del wget tar; \
+    else \
+        apk add --upgrade --no-cache curl tar; \
+        curl -L ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local ; \
+        apk del curl tar ; \
+    fi ; \
+    ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
 ARG USE_CLANG="false"
 RUN set -ex; \    
@@ -58,40 +67,28 @@ RUN set -ex; \
         \
         ## Set Debugger Default (Symbolic Link for IDEs like CLion)
         ## Redirect the expected gdb path to the lldb executable
-        ln -sf /usr/bin/lldb /usr/bin/gdb; \
+        # ln -sf /usr/bin/lldb /usr/bin/gdb; \
         \
         ## For build-time: Export CC/CXX for tools that respect ENV (e.g., CMake)
         export CC="clang"; \
         export CXX="clang++"; \
     else \
         ## 1. GCC toolchain and debugger
-        apk add --upgrade --no-cache build-base gdb ;\
+        apk add --upgrade --no-cache build-base ;\
     fi ; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
-ARG USE_WGET="false"
-ARG CMAKE_VERSION="4.1.2"
-ARG CMAKE_MAJOR_MINOR="${CMAKE_VERSION%.*}"
-ARG CMAKE_URL="https://cmake.org/files/v${CMAKE_MAJOR_MINOR}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
-RUN set -ex; \
-    if [ "${USE_WGET}" = "true" ]; then \
-        apk add --upgrade --no-cache wget tar; \
-        wget -q -O- ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local; \
-        apk del wget tar; \
-    else \
-        apk add --upgrade --no-cache curl tar; \
-        curl -L ${CMAKE_URL} | tar xz --strip-components=1 -C /usr/local ; \
-        apk del curl tar ; \
-    fi ; \
-    ln -s /usr/local/bin/cmake /usr/bin/cmake ; \
-    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
-
+## Qt 6 Development Support
+ARG USE_QT6="false"
 RUN set -ex; \    
-    apk add --upgrade --no-cache \
-        boost-dev \
-        ; \
-    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* ;
-
+    if [ "${USE_QT6}" = "true" ]; \
+    then \
+        apk add --upgrade --no-cache \
+            qt6-qtbase-dev \
+            # qt6-qttools-dev \
+            ; \
+        rm -rf /tmp/* /var/tmp/* /var/cache/apk/* ;\
+    fi ;
 
 WORKDIR /app
 

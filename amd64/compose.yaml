@@ -1,72 +1,119 @@
 services:
 
 ## Alpine collection #######################
-  # gcc-alpine:
-  #   image: krthkj/cpp:gcc14-alpine
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.alpine
-  #     args:
-  #       IMG_TAG: "latest"
-  #       CMAKE_VERSION: 4.0.4
-
-  # clang-alpine:
-  #   image: krthkj/cpp:clang20-alpine
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.alpine
-  #     args:
-  #       IMG_TAG: "latest"
-  #       USE_CLANG: "true"
-  #       CMAKE_VERSION: 4.0.4
-
-# ## Ubuntu Collection #######################
-  gcc:
-    image: krthkj/cpp:gcc14
+  gcc-alpine:
+    image: gcc-alpine:${BUILD_VERSION}
     build:
       context: .
-      dockerfile: Dockerfile.ubuntu
+      dockerfile: Dockerfile.alpine
       args:
-        IMG_TAG: "latest"
-        COMPILER_VERSION: "14"
-        CMAKE_VERSION: 4.0.4
+        CMAKE_VERSION: 4.0.5
+      tags:
+        - krthkj/cpp:gcc-alpine
+        - gcc-alpine:latest
 
-  clang:
-    image: krthkj/cpp:clang20
+  clang-alpine:
+    image: clang-alpine:${BUILD_VERSION}
     build:
       context: .
-      dockerfile: Dockerfile.ubuntu
+      dockerfile: Dockerfile.alpine
       args:
-        IMG_TAG: "latest"
         USE_CLANG: "true"
-        COMPILER_VERSION: "20"
-        CMAKE_VERSION: 4.0.4
+        CMAKE_VERSION: 4.0.5
+      tags:
+        - krthkj/cpp:clang-alpine
+        - clang-alpine:latest
 
 
-# ## Ubuntu-nvidia Collection ################
-  # gcc-cuda:
-  #   image: krthkj/cpp:gcc14-cuda13
+  # gcc-alpine-edge:
+  #   image: gcc-alpine-edge:${BUILD_VERSION}
   #   build:
   #     context: .
-  #     dockerfile: Dockerfile.nvidia-cuda
+  #     dockerfile: Dockerfile.alpine
   #     args:
-  #       IMG_TAG: 13.0.2-devel-ubuntu24.04
-  #       GCC_VERSION: "14"
-  #       CMAKE_VERSION: 4.0.4
+  #       IMG_TAG: "edge"
+  #       CMAKE_VERSION: 4.0.5
+  #     tags:
+  #       - krthkj/cpp:gcc-alpine-edge
+  #       - gcc-alpine-edge:latest
 
-#   clang-cuda:
-#     image: krthkj/cpp:clang-cuda13
+  # clang-alpine-edge:
+  #   image: clang-alpine-edge:${BUILD_VERSION}
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.alpine
+  #     args:
+  #       IMG_TAG: "edge"
+  #       USE_CLANG: "true"
+  #       CMAKE_VERSION: 4.0.5
+  #     tags:
+  #       - krthkj/cpp:clang-alpine-edge
+  #       - clang-alpine-edge:latest
+
+# # ## Ubuntu Collection #######################
+  gcc14:
+    image: gcc14:${BUILD_VERSION}
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        GCC_VERSION: "14"
+        CMAKE_VERSION: 4.0.5
+      tags:
+        # - krthkj/cpp:gcc14
+        - gcc14:latest
+
+  # clang20:
+  #   image: krthkj/cpp:clang20:${BUILD_VERSION}
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ubuntu
+  #     args:
+  #       USE_CLANG: "true"
+  #       CLANG_VERSION: "20"
+  #       CMAKE_VERSION: 4.0.5
+
+  gcc15:
+    image: gcc15:${BUILD_VERSION}
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        IMG_TAG: "rolling"
+        GCC_VERSION: "15"
+        CMAKE_VERSION: 4.0.5
+      tags:
+        - krthkj/cpp:gcc15
+        - gcc15:latest
+
+# # ## Ubuntu-nvidia Collection ################
+#   gcc-cuda:
+#     image: cuda13-gcc:${BUILD_VERSION}
 #     build:
 #       context: .
 #       dockerfile: Dockerfile.nvidia-cuda
 #       args:
 #         IMG_TAG: 13.0.2-devel-ubuntu24.04
-#         USE_CLANG: "true"
-#         CMAKE_VERSION: 4.0.4
+#         GCC_VERSION: "14"
+#         CMAKE_VERSION: 4.0.5
+#       tags:
+#         # - krthkj/cpp:cuda13-gcc
+#         - cuda13-gcc:latest
 
-############################################
-#   ubuntu-gui:
-#     image: krthkj/cpp:gcc13-gui
-#     build:
-#       context: .
-#       dockerfile: Dockerfile.ubuntu-gui
+# #   clang-cuda:
+# #     image: krthkj/cpp:cuda13-clang:${BUILD_VERSION}
+# #     build:
+# #       context: .
+# #       dockerfile: Dockerfile.nvidia-cuda
+# #       args:
+# #         IMG_TAG: 13.0.2-devel-ubuntu24.04
+# #         USE_CLANG: "true"
+# #         CLANG_VERSION: "20"
+# #         CMAKE_VERSION: 4.0.5
+
+# # ############################################
+# # #   ubuntu-gui:
+# # #     image: krthkj/cpp:gcc13-gui
+# # #     build:
+# # #       context: .
+# # #       dockerfile: Dockerfile.ubuntu-gui
