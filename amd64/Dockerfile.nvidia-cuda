@@ -65,13 +65,20 @@ RUN set -ex ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
 
 ARG GCC_VERSION="14"
+ENV ALT_VALUE="${GCC_VERSION}0"
 RUN set -ex; \
     apt-get update ; \
     apt-get install -y --no-install-recommends \
         gcc-${GCC_VERSION} g++-${GCC_VERSION} \
         ;\
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${GCC_VERSION}0 ; \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${GCC_VERSION}0 ; \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${ALT_VALUE} ; \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${ALT_VALUE} ; \
+    \
+    update-alternatives --install /usr/bin/cc  cc  /usr/bin/gcc ${ALT_VALUE} ; \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ ${ALT_VALUE} ; \
+    \
+    export CC="gcc"; \
+    export CXX="g++"; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* ;
@@ -79,6 +86,7 @@ RUN set -ex; \
 
 ARG USE_CLANG="false"
 ARG CLANG_VERSION="20"
+ENV ALT_VALUE="${CLANG_VERSION}0"
 RUN set -ex ;\
     if [ "${USE_CLANG}" = "true" ]; \
     then \
@@ -91,14 +99,17 @@ RUN set -ex ;\
             llvm-${CLANG_VERSION} \
             ;\
         ## Force all generic and GCC-named commands to point to Clang
-        update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${CLANG_VERSION}   ${CLANG_VERSION}0 ; \
-        update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} ${CLANG_VERSION}0 ; \
+        update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${CLANG_VERSION}   ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} ${ALT_VALUE} ; \
         \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${CLANG_VERSION} ${CLANG_VERSION}0 ; \
-        update-alternatives --install /usr/bin/clang-tidy   clang-tidy   /usr/bin/clang-tidy-${CLANG_VERSION}   ${CLANG_VERSION}0 ; \
+        update-alternatives --install /usr/bin/cc  cc  /usr/bin/clang   ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ ${ALT_VALUE} ; \
         \
-        update-alternatives --install /usr/bin/lld  lld  /usr/bin/lld-${CLANG_VERSION}  ${CLANG_VERSION}0 ; \
-        update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-${CLANG_VERSION} ${CLANG_VERSION}0 ; \
+        update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${CLANG_VERSION} ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/clang-tidy   clang-tidy   /usr/bin/clang-tidy-${CLANG_VERSION}   ${ALT_VALUE} ; \
+        \
+        update-alternatives --install /usr/bin/lld  lld  /usr/bin/lld-${CLANG_VERSION}  ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-${CLANG_VERSION} ${ALT_VALUE} ; \
         \
         ## Redirect the expected gdb path to the lldb executable
         # ln -sf /usr/bin/lldb /usr/bin/gdb; \

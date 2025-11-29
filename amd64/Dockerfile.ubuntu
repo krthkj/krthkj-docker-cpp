@@ -42,8 +42,15 @@ RUN set -ex; \
         sqlite3 libsqlite3-dev \
         nlohmann-json3-dev libjsoncpp-dev\
         ;\
+    \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_VERSION} ${ALT_VALUE} ; \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${ALT_VALUE} ; \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCC_VERSION} ${ALT_VALUE} ; \    
+    \
+    update-alternatives --install /usr/bin/cc  cc  /usr/bin/gcc ${ALT_VALUE} ; \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ ${ALT_VALUE} ; \
+    \
+    export CC="gcc"; \
+    export CXX="g++"; \
     apt-get autoremove -y; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*;
@@ -98,9 +105,13 @@ RUN set -ex ;\
             lld-${CLANG_VERSION} lldb-${CLANG_VERSION} \
             llvm-${CLANG_VERSION} \
             ;\
+        \
         ## Force all generic and GCC-named commands to point to Clang
         update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-${CLANG_VERSION}   ${ALT_VALUE} ; \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANG_VERSION} ${ALT_VALUE} ; \
+        \
+        update-alternatives --install /usr/bin/cc  cc  /usr/bin/clang   ${ALT_VALUE} ; \
+        update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ ${ALT_VALUE} ; \
         \
         update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${CLANG_VERSION} ${ALT_VALUE} ; \
         update-alternatives --install /usr/bin/clang-tidy   clang-tidy   /usr/bin/clang-tidy-${CLANG_VERSION}   ${ALT_VALUE} ; \
