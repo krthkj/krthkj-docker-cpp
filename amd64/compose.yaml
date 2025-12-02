@@ -10,7 +10,7 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc-alpine
-        - krthkj/cpp:gcc-alpine-${BUILD_TIMESTAMP}
+        - krthkj/cpp:gcc-alpine-${BUILD_VERSION}
         - gcc-alpine:latest
 
   clang-alpine:
