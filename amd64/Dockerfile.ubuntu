@@ -21,8 +21,9 @@ RUN set -ex; \
         ninja-build \
         libsdbus-c++-dev \
         ;\
-    if [ "${IMG_TAG}" = "latest" ]; \
-    then \
+    if [ "${IMG_TAG}" = "latest" ]; then \
+        echo "not installing external ppa" ;\
+    elif [ "${IMG_TAG}" = "devel" ]; then \
         echo "not installing external ppa" ;\
     else \
         apt-get install -y --no-install-recommends \

@@ -95,6 +95,20 @@ services:
         - krthkj/cpp:gcc15-${BUILD_VERSION}
         - gcc15:latest
 
+  gcc-devel:
+    image: gcc-devel:${BUILD_TIMESTAMP}
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+      args:
+        IMG_TAG: "devel"
+        GCC_VERSION: "15"
+        CMAKE_VERSION: 4.2.0
+      tags:
+        - krthkj/cpp:gcc-devel
+        - krthkj/cpp:gcc-devel-${BUILD_VERSION}
+        - gcc-devel:latest
+
 ## Ubuntu-nvidia Collection ################
   gcc-cuda:
     image: gcc14-cuda13:${BUILD_TIMESTAMP}
