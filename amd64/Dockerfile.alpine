@@ -21,10 +21,12 @@ RUN set -ex; \
     ## SPD logging
         spdlog-dev \
         boost-dev \
+    ## D-Bus library
+        sdbus-cpp sdbus-cpp-dev \
         ; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*;
 
-ENV CMAKE_GENERATOR=Ninja
+ENV CMAKE_GENERATOR="Ninja"
 
 ARG USE_WGET="false"
 ARG CMAKE_VERSION="4.1.3"

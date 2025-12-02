@@ -2,7 +2,7 @@ services:
 
 ## Alpine collection #######################
   gcc-alpine:
-    image: gcc-alpine:${BUILD_VERSION}
+    image: gcc-alpine:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.alpine
@@ -10,10 +10,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc-alpine
+        - krthkj/cpp:gcc-alpine-${BUILD_TIMESTAMP}
         - gcc-alpine:latest
 
   clang-alpine:
-    image: clang-alpine:${BUILD_VERSION}
+    image: clang-alpine:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.alpine
@@ -22,10 +23,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:clang-alpine
+        - krthkj/cpp:clang-alpine-${BUILD_VERSION}
         - clang-alpine:latest
 
   gcc-alpine-edge:
-    image: gcc-alpine-edge:${BUILD_VERSION}
+    image: gcc-alpine-edge:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.alpine
@@ -34,10 +36,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc-alpine-edge
+        - krthkj/cpp:gcc-alpine-edge-${BUILD_VERSION}
         - gcc-alpine-edge:latest
 
   clang-alpine-edge:
-    image: clang-alpine-edge:${BUILD_VERSION}
+    image: clang-alpine-edge:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.alpine
@@ -47,11 +50,12 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:clang-alpine-edge
+        - krthkj/cpp:clang-alpine-edge-${BUILD_VERSION}
         - clang-alpine-edge:latest
 
 ## Ubuntu Collection #######################
   gcc14:
-    image: gcc14:${BUILD_VERSION}
+    image: gcc14:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.ubuntu
@@ -60,10 +64,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc14
+        - krthkj/cpp:gcc14-${BUILD_VERSION}
         - gcc14:latest
 
   clang20:
-    image: clang20:${BUILD_VERSION}
+    image: clang20:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.ubuntu
@@ -73,10 +78,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:clang20
+        - krthkj/cpp:clang20-${BUILD_VERSION}
         - clang20:latest
 
   gcc15:
-    image: gcc15:${BUILD_VERSION}
+    image: gcc15:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.ubuntu
@@ -86,11 +92,12 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc15
-  #       - gcc15:latest
+        - krthkj/cpp:gcc15-${BUILD_VERSION}
+        - gcc15:latest
 
 ## Ubuntu-nvidia Collection ################
   gcc-cuda:
-    image: gcc14-cuda13:${BUILD_VERSION}
+    image: gcc14-cuda13:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.nvidia-cuda
@@ -100,10 +107,11 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:gcc14-cuda13
+        - krthkj/cpp:gcc14-cuda13-${BUILD_VERSION}
         - gcc14-cuda13:latest
 
   clang-cuda:
-    image: clang20-cuda13:${BUILD_VERSION}
+    image: clang20-cuda13:${BUILD_TIMESTAMP}
     build:
       context: .
       dockerfile: Dockerfile.nvidia-cuda
@@ -114,6 +122,7 @@ services:
         CMAKE_VERSION: 4.0.5
       tags:
         - krthkj/cpp:clang20-cuda13
+        - krthkj/cpp:clang20-cuda13-${BUILD_VERSION}
         - clang20-cuda13:latest
 
 ############################################

@@ -4,7 +4,8 @@
 # docker run --rm -it --gpus all tag:ver
 
 # Export the variable, creating a unique timestamp
-export BUILD_VERSION=$(date +%Y%m%d-%H%M)
+export BUILD_TIMESTAMP=$(date +%Y%m%d-%H%M)
+export BUILD_VERSION=$(date +%Y%m%d)
 
 ## Build images 
 cd amd64
