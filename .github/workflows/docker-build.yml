@@ -1,0 +1,126 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'amd64/**'
+      - '.github/workflows/docker-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'amd64/**'
+  release:
+    types: [ published ]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly Monday 2 AM UTC
+
+env:
+  BUILD_VERSION: ${{ github.run_number }}
+  BUILD_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      gcc-alpine: ${{ steps.changes.outputs.gcc-alpine }}
+      gcc-alpine-edge: ${{ steps.changes.outputs.gcc-alpine-edge }}
+      gcc14: ${{ steps.changes.outputs.gcc14 }}
+      gcc-cuda: ${{ steps.changes.outputs.gcc-cuda }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed files
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            gcc-alpine:
+              - 'amd64/Dockerfile.alpine'
+            gcc-alpine-edge:
+              - 'amd64/Dockerfile.alpine'
+            gcc14:
+              - 'amd64/Dockerfile.ubuntu'
+            gcc-cuda:
+              - 'amd64/Dockerfile.nvidia-cuda'
+
+  build-and-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: |
+      needs.detect-changes.outputs.gcc-alpine == 'true' ||
+      needs.detect-changes.outputs.gcc-alpine-edge == 'true' ||
+      needs.detect-changes.outputs.gcc14 == 'true' ||
+      needs.detect-changes.outputs.gcc-cuda == 'true' ||
+      github.event_name == 'release' ||
+      github.event_name == 'schedule'
+    
+    strategy:
+      matrix:
+        include:
+          - service: gcc-alpine
+            dockerfile: Dockerfile.alpine
+            platforms: linux/amd64,linux/arm64
+            condition: ${{ needs.detect-changes.outputs.gcc-alpine == 'true' || github.event_name == 'release' || github.event_name == 'schedule' }}
+          - service: gcc-alpine-edge
+            dockerfile: Dockerfile.alpine
+            platforms: linux/amd64,linux/arm64
+            build_args: IMG_TAG=edge
+            condition: ${{ needs.detect-changes.outputs.gcc-alpine-edge == 'true' || github.event_name == 'release' || github.event_name == 'schedule' }}
+          - service: gcc14
+            dockerfile: Dockerfile.ubuntu
+            platforms: linux/amd64,linux/arm64
+            build_args: GCC_VERSION=14
+            condition: ${{ needs.detect-changes.outputs.gcc14 == 'true' || github.event_name == 'release' || github.event_name == 'schedule' }}
+          - service: gcc-cuda
+            dockerfile: Dockerfile.nvidia-cuda
+            platforms: linux/amd64
+            build_args: IMG_TAG=13.0.2-devel-ubuntu24.04,GCC_VERSION=14
+            condition: ${{ needs.detect-changes.outputs.gcc-cuda == 'true' || github.event_name == 'release' || github.event_name == 'schedule' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: ${{ matrix.platforms }}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: krthkj/cpp
+          tags: |
+            type=ref,event=branch,suffix=-${{ matrix.service }}
+            type=ref,event=pr,suffix=-${{ matrix.service }}
+            type=semver,pattern={{version}},suffix=-${{ matrix.service }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.service }}
+            type=raw,value=latest,suffix=-${{ matrix.service }}
+            type=raw,value=${{ env.BUILD_VERSION }},suffix=-${{ matrix.service }}
+            type=raw,value=${{ env.BUILD_TIMESTAMP }},suffix=-${{ matrix.service }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./amd64/${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platforms }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            krthkj/cpp:${{ matrix.service }}:latest
+            krthkj/cpp:${{ matrix.service }}:${{ env.BUILD_VERSION }}
+            krthkj/cpp:${{ matrix.service }}:${{ env.BUILD_TIMESTAMP }}
+          build-args: ${{ matrix.build_args }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: ${{ steps.meta.outputs.labels }}
