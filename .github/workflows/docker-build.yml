@@ -117,9 +117,9 @@ jobs:
           platforms: ${{ matrix.platforms }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            krthkj/cpp:${{ matrix.service }}:latest
-            krthkj/cpp:${{ matrix.service }}:${{ env.BUILD_VERSION }}
-            krthkj/cpp:${{ matrix.service }}:${{ env.BUILD_TIMESTAMP }}
+            krthkj/cpp:${{ matrix.service }}
+            krthkj/cpp:${{ matrix.service }}-${{ env.BUILD_VERSION }}
+            krthkj/cpp:${{ matrix.service }}-${{ env.BUILD_TIMESTAMP }}
           build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

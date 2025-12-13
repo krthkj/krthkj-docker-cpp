@@ -88,20 +88,20 @@ jobs:
           push: false
           load: true
           tags: |
-            krthkj/cpp:${{ matrix.service }}:test-${{ env.BUILD_VERSION }}
+            krthkj/cpp:${{ matrix.service }}-test-${{ env.BUILD_VERSION }}
           build-args: ${{ matrix.build_args }}
           cache-from: type=gha
 
       - name: Test container functionality
         run: |
           echo "Testing ${{ matrix.service }} container..."
-          docker run --rm krthkj/cpp:${{ matrix.service }}:test-${{ env.BUILD_VERSION }} gcc --version
-          docker run --rm krthkj/cpp:${{ matrix.service }}:test-${{ env.BUILD_VERSION }} cmake --version
+          docker run --rm krthkj/cpp:${{ matrix.service }}-test-${{ env.BUILD_VERSION }} gcc --version
+          docker run --rm krthkj/cpp:${{ matrix.service }}-test-${{ env.BUILD_VERSION }} cmake --version
 
       - name: Security scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: krthkj/cpp:${{ matrix.service }}:test-${{ env.BUILD_VERSION }}
+          image-ref: krthkj/cpp:${{ matrix.service }}-test-${{ env.BUILD_VERSION }}
           format: 'sarif'
           output: 'trivy-results.sarif'
 
